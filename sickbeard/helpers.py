@@ -400,6 +400,10 @@ def listMediaFiles(dir):
 
     return files
 
+def linkFile(srcFile, destFile):
+    logger.log("os.link " + str(destFile) + " " + str(srcFile), logger.DEBUG)
+    ek.ek(os.symlink, destFile, srcFile) # Create a link from src -> dest
+
 def copyFile(srcFile, destFile):
     ek.ek(shutil.copyfile, srcFile, destFile)
     try:

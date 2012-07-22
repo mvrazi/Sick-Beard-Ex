@@ -255,7 +255,7 @@ class PostProcessor(object):
                 
         self._combined_file_operation(file_path, new_path, new_base_name, associated_files, action=_int_move)
                 
-    def _copy(self, file_path, new_path, new_base_name, associated_files=False):
+    def _link(self, file_path, new_path, new_base_name, associated_files=False):
         """
         file_path: The full path of the media file to copy
         new_path: Destination path where we want to copy the file to 
@@ -263,17 +263,19 @@ class PostProcessor(object):
         associated_files: Boolean, whether we should copy similarly-named files too
         """
 
-        def _int_copy (cur_file_path, new_file_path):
+        def _int_link (cur_file_path, new_file_path):
 
-            self._log(u"Copying file from "+cur_file_path+" to "+new_file_path, logger.DEBUG)
+            self._log(u"Linking file from "+cur_file_path+" to "+new_file_path, logger.DEBUG)
             try:
-                helpers.copyFile(cur_file_path, new_file_path)
+                helpers.moveFile(cur_file_path, new_file_path)
+                helpers.linkFile(cur_file_path, new_file_path)
                 helpers.chmodAsParent(new_file_path)
             except (IOError, OSError), e:
-                logger.log("Unable to copy file "+cur_file_path+" to "+new_file_path+": "+ex(e), logger.ERROR)
+                logger.log("Unable to link file "+cur_file_path+" to "+new_file_path+": "+ex(e), logger.ERROR)
+                logger.log(str(e), logger.ERROR);
                 raise e
 
-        self._combined_file_operation(file_path, new_path, new_base_name, associated_files, action=_int_copy)
+        self._combined_file_operation(file_path, new_path, new_base_name, associated_files, action=_int_link)
 
     def _find_ep_destination_folder(self, ep_obj):
         """
@@ -807,7 +809,7 @@ class PostProcessor(object):
         try:
             # move the episode and associated files to the show dir
             if sickbeard.KEEP_PROCESSED_DIR:
-                self._copy(self.file_path, dest_path, new_base_name, sickbeard.MOVE_ASSOCIATED_FILES)
+                self._link(self.file_path, dest_path, new_base_name, sickbeard.MOVE_ASSOCIATED_FILES)
             else:
                 self._move(self.file_path, dest_path, new_base_name, sickbeard.MOVE_ASSOCIATED_FILES)
         except OSError, IOError:
