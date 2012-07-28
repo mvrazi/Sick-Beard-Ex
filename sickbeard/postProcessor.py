@@ -696,9 +696,15 @@ class PostProcessor(object):
         """
         Post-process a given file
         """
-        
+                
+        if os.path.islink(self.file_path):
+            return 2 # already parsed path
+
+        if not os.access(self.file_path, os.W_OK):
+            return 2 # no write access, downloader-ignore?
+
         self._log(u"Processing "+self.file_path+" ("+str(self.nzb_name)+")")
-        
+
         if os.path.isdir( self.file_path ):
             self._log(u"File "+self.file_path+" seems to be a directory")
             return False

@@ -45,8 +45,6 @@ def processDir (dirName, nzbName=None, recurse=False):
 
     returnStr = ''
 
-    returnStr += logHelper(u"Processing folder "+dirName, logger.DEBUG)
-
     # if they passed us a real dir then assume it's the one we want
     if ek.ek(os.path.isdir, dirName):
         dirName = ek.ek(os.path.realpath, dirName)
@@ -89,7 +87,6 @@ def processDir (dirName, nzbName=None, recurse=False):
 
     # recursively process all the folders
     for curFolder in folders:
-        returnStr += logHelper(u"Recursively processing a folder: "+curFolder, logger.DEBUG)
         returnStr += processDir(ek.ek(os.path.join, dirName, curFolder), recurse=True)
 
     remainingFolders = filter(lambda x: ek.ek(os.path.isdir, ek.ek(os.path.join, dirName, x)), fileList)
@@ -103,6 +100,7 @@ def processDir (dirName, nzbName=None, recurse=False):
             processor = postProcessor.PostProcessor(cur_video_file_path, nzbName)
             process_result = processor.process()
             process_fail_message = ""
+
         except exceptions.PostProcessingFailed, e:
             process_result = False
             process_fail_message = ex(e)
@@ -110,7 +108,7 @@ def processDir (dirName, nzbName=None, recurse=False):
         returnStr += processor.log 
 
         # as long as the postprocessing was successful delete the old folder unless the config wants us not to
-        if process_result:
+        if process_result == True:
 
             if len(videoFiles) == 1 and not sickbeard.KEEP_PROCESSED_DIR and \
                 ek.ek(os.path.normpath, dirName) != ek.ek(os.path.normpath, sickbeard.TV_DOWNLOAD_DIR) and \
@@ -124,7 +122,8 @@ def processDir (dirName, nzbName=None, recurse=False):
                     returnStr += logHelper(u"Warning: unable to remove the folder " + dirName + ": " + ex(e), logger.WARNING)
 
             returnStr += logHelper(u"Processing succeeded for "+cur_video_file_path)
-            
+        elif process_result == 2:
+            pass # skip processing, file is symlink or downloader-ignore UID/GID set
         else:
             returnStr += logHelper(u"Processing failed for "+cur_video_file_path+": "+process_fail_message, logger.WARNING)
 
