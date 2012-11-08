@@ -23,6 +23,9 @@ import os
 import re
 import shlex
 import subprocess
+import sys
+if sys.platform == 'win32':
+    import win32file, win32con
 
 import sickbeard
 
@@ -291,6 +294,14 @@ class PostProcessor(object):
                 raise e
 
         self._combined_file_operation(file_path, new_path, new_base_name, associated_files, action=_int_link)
+
+    def _islink(self, path):
+        if sys.platform == 'win32':
+            file_attrs = win32file.GetFileAttributes(path)
+            if file_attrs == -1: return False
+            return (file_attrs & win32con.FILE_ATTRIBUTE_REPARSE_POINT) == win32con.FILE_ATTRIBUTE_REPARSE_POINT
+        else:
+            return os.path.islink(path)
 
     def _history_lookup(self):
         """
@@ -702,7 +713,7 @@ class PostProcessor(object):
 
 
                 
-        if os.path.islink(self.file_path):
+        if self._islink(self.file_path):
             return 2 # already parsed path
 
         if not os.access(self.file_path, os.W_OK):

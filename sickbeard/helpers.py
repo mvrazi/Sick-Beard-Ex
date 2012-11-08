@@ -24,6 +24,8 @@ import re, socket
 import shutil
 import traceback
 import time, sys
+if sys.platform == 'win32':
+    import win32file
 
 from httplib import BadStatusLine
 
@@ -412,9 +414,15 @@ def listMediaFiles(dir):
 
     return files
 
-def linkFile(srcFile, destFile):
-    logger.log("os.link " + str(destFile) + " " + str(srcFile), logger.DEBUG)
-    ek.ek(os.symlink, destFile, srcFile) # Create a link from src -> dest
+def _linkFile(linkFile, targetFile):
+    if sys.platform == 'win32':
+        win32file.CreateSymbolicLink(linkFile, targetFile)
+    else:
+        os.symlink(targetFile, linkFile)
+    
+def linkFile(linkFile, targetFile):
+    logger.log("os.link " + str(targetFile) + " " + str(linkFile), logger.DEBUG)
+    ek.ek(_linkFile, linkFile, targetFile)
 
 def copyFile(srcFile, destFile):
     ek.ek(shutil.copyfile, srcFile, destFile)
