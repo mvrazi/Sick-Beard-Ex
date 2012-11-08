@@ -129,6 +129,9 @@ class DBConnection:
             d[col[0]] = row[idx]
         return d
     
+    def close(self):
+        self.connection.close()
+    
 def sanityCheckDatabase(connection, sanity_check):
     sanity_check(connection).check()
 
