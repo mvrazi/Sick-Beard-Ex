@@ -1,5 +1,5 @@
 # coding=utf-8
-# Author: DaniÃ«l Heimans
+# Author: Daniël Heimans
 # URL: http://code.google.com/p/sickbeard
 #
 # This file is part of Sick Beard.
@@ -49,7 +49,7 @@ class BTNProvider(generic.TorrentProvider):
         return sickbeard.BTN
     
     def imageName(self):
-        return 'btn.gif'
+        return 'btn.png'
 
     def checkAuthFromData(self, data):
         result = True
@@ -106,15 +106,14 @@ class BTNProvider(generic.TorrentProvider):
             results.append(torrent_info)
 
 #        Disabled this because it overspammed the debug log a bit too much
-        logger.log(u'BTN provider returning the following results for search parameters: ' + str(params), logger.DEBUG)
-        for result in results:
-            (title, result) = self._get_title_and_url(result)
-            logger.log(title, logger.DEBUG)
+#        logger.log(u'BTN provider returning the following results for search parameters: ' + str(params), logger.DEBUG)
+#        for result in results:
+#            (title, result) = self._get_title_and_url(result)
+#            logger.log(title, logger.DEBUG)
             
         return results
 
     def _api_call(self, apikey, params={}, results_per_page=1000, offset=0):
-	logger.log(params.__repr__(), logger.DEBUG);
         server = jsonrpclib.Server('http://api.btnapps.net')
         
         search_results ={} 

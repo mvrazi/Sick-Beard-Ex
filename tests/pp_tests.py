@@ -70,6 +70,9 @@ class PPPrivateTests(test.SickbeardTestDBCase):
 
         self.ep_obj = TVEpisode(self.show_obj, test.SEASON, test.EPISODE, test.FILEPATH)
 
+    def tearDown(self):
+        self.db.close()
+
     def test__find_ep_destination_folder(self):
         self.show_obj.location = test.FILEDIR
         self.ep_obj.show.seasonfolders = 1
