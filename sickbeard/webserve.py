@@ -58,6 +58,8 @@ import xml.etree.cElementTree as etree
 
 from sickbeard import browser
 
+from elapsedErrorChecker import elapsedErrorChecker as eec
+
 
 class PageTemplate (Template):
     def __init__(self, *args, **KWs):
@@ -1924,6 +1926,11 @@ class ErrorLogs:
         t.logLines = result
         t.minLevel = minLevel
 
+        return _munge(t)
+    
+    @cherrypy.expose
+    def elapsed(self):
+        t = PageTemplate(file="errorelapsed.tmpl")
         return _munge(t)
 
 

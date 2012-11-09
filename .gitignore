@@ -8,6 +8,7 @@ sickbeard.db*
 autoProcessTV/autoProcessTV.cfg
 server.crt
 server.key
+_env/
 
 #  SB Test Related   #
 ######################
@@ -30,6 +31,7 @@ tests/cache.db
 *.tmproj
 *.tmproject
 *.sw?
+.idea/
 
 # OS generated files #
 ######################
