@@ -421,7 +421,7 @@ def _linkFile(linkFile, targetFile):
         os.symlink(targetFile, linkFile)
     
 def linkFile(linkFile, targetFile):
-    logger.log("os.link " + str(targetFile) + " " + str(linkFile), logger.DEBUG)
+    logger.log("os.link " + unicode(targetFile) + " " + unicode(linkFile), logger.DEBUG)
     ek.ek(_linkFile, linkFile, targetFile)
 
 def copyFile(srcFile, destFile):
