@@ -24,6 +24,9 @@ import re
 import shlex
 import subprocess
 import sys
+import time
+from sickbeard.elapsedErrorChecker import elapsedErrorChecker, ElapsedMethodDecorator
+
 if sys.platform == 'win32':
     import win32file, win32con
 
@@ -274,7 +277,8 @@ class PostProcessor(object):
                 raise e
                 
         self._combined_file_operation(file_path, new_path, new_base_name, associated_files, action=_int_move)
-                
+
+    @ElapsedMethodDecorator(20 * 1000, 60 * 1000) # 20s Warning, 60s Error TODO: Review these times
     def _link(self, file_path, new_path, new_base_name, associated_files=False):
         """
         file_path: The full path of the media file to copy
@@ -472,7 +476,8 @@ class PostProcessor(object):
         _finalize(parse_result)
         return to_return
     
-    
+
+    @ElapsedMethodDecorator(500, 1000)  # 0.5s Warning, 1s Error TODO: Review these times
     def _find_info(self):
         """
         For a given file try to find the showid, season, and episode.
@@ -714,6 +719,7 @@ class PostProcessor(object):
         
         return False
 
+    @ElapsedMethodDecorator(30 * 1000, 60 * 1000) # 30s Warning, 60s Error TODO: Review these times
     def process(self):
         """
         Post-process a given file

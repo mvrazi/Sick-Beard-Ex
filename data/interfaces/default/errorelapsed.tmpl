@@ -14,27 +14,36 @@
         <tr>
             <th></th>
             <th>Count</th>
-            <th>Average</th>
-            <th>Min</th>
-            <th>Max</th>
+            <th>Average (ms)</th>
+            <th>Min (ms)</th>
+            <th>Max (ms)</th>
         </tr>
     </thead>
     <tbody>
         #for $ek, $ev in $eec.methods.items:
-        <tr>
-            <td><b>$ek</b></td>
-            <td>$len($ev)</td>
-            <td>$ev.events_avg</td>
-            <td>$ev.events_min</td>
-            <td>$ev.events_max</td>
-        </tr>
+            #set $evAverage = $ev.events_avg
+            #set $evWarn = $evAverage > $ev.msWarning
+            #set $evError = $evAverage > $ev.msError
+            #if $evError
+            <tr class="error">
+            #else if $evWarn
+            <tr class="warning">
+            #else
+            <tr class="success">
+            #end if
+                <td><b>$ek</b></td>
+                <td>$len($ev)</td>
+                <td>$evAverage</td>
+                <td>$ev.events_min</td>
+                <td>$ev.events_max</td>
+            </tr>
         #end for
     </tbody>
 </table>
 
 <div class="align-left"><pre>
 #for $ev in $eec.events:
-$ev.startTime - "$ev.method":"$ev.ident" = $ev.elapsed
+$ev.startTime - "$ev.methodName":"$ev.ident" = $ev.elapsed
 #end for
 </pre>
 </div>
