@@ -9,6 +9,29 @@
 #import os.path
 #include $os.path.join($sickbeard.PROG_DIR, "data/interfaces/default/inc_top.tmpl")
 
+<table class="table">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Count</th>
+            <th>Average</th>
+            <th>Min</th>
+            <th>Max</th>
+        </tr>
+    </thead>
+    <tbody>
+        #for $ek, $ev in $eec.methods.items:
+        <tr>
+            <td><b>$ek</b></td>
+            <td>$len($ev)</td>
+            <td>$ev.events_avg</td>
+            <td>$ev.events_min</td>
+            <td>$ev.events_max</td>
+        </tr>
+        #end for
+    </tbody>
+</table>
+
 <div class="align-left"><pre>
 #for $ev in $eec.events:
 $ev.startTime - "$ev.method":"$ev.ident" = $ev.elapsed
