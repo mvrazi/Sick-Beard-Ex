@@ -1,0 +1,25 @@
+#import sickbeard
+#from sickbeard.elapsedErrorChecker import elapsedErrorChecker as eec
+#from sickbeard.common import *
+#set global $title="Method Times"
+
+#set global $sbPath = ".."
+
+#set global $topmenu="errorlogs"#
+#import os.path
+#include $os.path.join($sickbeard.PROG_DIR, "data/interfaces/default/inc_top.tmpl")
+
+<div class="align-left"><pre>
+#for $ev in $eec.events:
+$ev.startTime - "$ev.method":"$ev.ident" = $ev.elapsed
+#end for
+</pre>
+</div>
+
+<script type="text/javascript" charset="utf-8">
+<!--
+window.setInterval( "location.reload(true)", 600000); // Refresh every 10 minutes
+//-->
+</script>
+
+#include $os.path.join($sickbeard.PROG_DIR, "data/interfaces/default/inc_bottom.tmpl")

@@ -41,6 +41,8 @@ from sickbeard import postProcessor
 
 from sickbeard import encodingKludge as ek
 
+from elapsedErrorChecker import elapsedErrorChecker as eec
+
 from common import Quality, Overview
 from common import DOWNLOADED, SNATCHED, SNATCHED_PROPER, ARCHIVED, IGNORED, UNAIRED, WANTED, SKIPPED, UNKNOWN
 from common import NAMING_DUPLICATE, NAMING_EXTEND, NAMING_LIMITED_EXTEND, NAMING_SEPARATED_REPEAT
@@ -1295,6 +1297,8 @@ class TVEpisode(object):
 
     def createMetaFiles(self, force=False):
 
+        est = eec.set(self.createMetaFiles, str(self.show.name) + " - " + str(self.season) + "x" + str(self.episode))
+
         if not ek.ek(os.path.isdir, self.show._location):
             logger.log(str(self.show.tvdbid) + ": The show dir is missing, not bothering to try to create metadata")
             return
@@ -1304,6 +1308,8 @@ class TVEpisode(object):
 
         if self.checkForMetaFiles():
             self.saveToDB()
+
+        eec.clock(est)
 
     def createNFO(self, force=False):
 
@@ -1347,7 +1353,9 @@ class TVEpisode(object):
         forceSave: If True it will save to the database even if no data has been changed since the
                     last save (aka if the record is not dirty).
         """
-        
+
+        est = eec.set(self.saveToDB, str(self.show.name) + " - " + str(self.season) + "x" + str(self.episode))
+
         if not self.dirty and not forceSave:
             logger.log(str(self.show.tvdbid) + ": Not saving episode to db - record is not dirty", logger.DEBUG)
             return
@@ -1373,6 +1381,7 @@ class TVEpisode(object):
 
         # use a custom update/insert method to get the data into the DB
         myDB.upsert("tv_episodes", newValueDict, controlValueDict)
+        eec.clock(est)
 
     def fullPath (self):
         if self.location == None or self.location == "":

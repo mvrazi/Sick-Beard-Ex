@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Sick Beard.  If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import with_statement 
+from __future__ import with_statement
 
 import glob
 import os
@@ -44,6 +44,8 @@ from sickbeard import encodingKludge as ek
 from sickbeard.exceptions import ex
 
 from sickbeard.name_parser.parser import NameParser, InvalidNameException
+
+from elapsedErrorChecker import elapsedErrorChecker as eec
 
 from lib.tvdb_api import tvdb_api, tvdb_exceptions
 
@@ -284,6 +286,7 @@ class PostProcessor(object):
         def _int_link (cur_file_path, new_file_path):
 
             self._log(u"Linking file from "+cur_file_path+" to "+new_file_path, logger.DEBUG)
+            est = eec.set(self._link, cur_file_path)
             try:
                 helpers.moveFile(cur_file_path, new_file_path)
                 helpers.linkFile(cur_file_path, new_file_path)
@@ -291,7 +294,9 @@ class PostProcessor(object):
             except (IOError, OSError), e:
                 logger.log("Unable to link file "+cur_file_path+" to "+new_file_path+": "+ex(e), logger.ERROR)
                 logger.log(str(e), logger.ERROR);
+                eec.clock(est, False)
                 raise e
+            eec.clock(est, True)
 
         self._combined_file_operation(file_path, new_path, new_base_name, associated_files, action=_int_link)
 
@@ -472,6 +477,7 @@ class PostProcessor(object):
         """
         For a given file try to find the showid, season, and episode.
         """
+        est = eec.set(self._find_info, self.file_name)
     
         tvdb_id = season = None
         episodes = []
@@ -558,8 +564,10 @@ class PostProcessor(object):
                     season = 1
             
             if tvdb_id and season != None and episodes:
+                eec.clock(est)
                 return (tvdb_id, season, episodes)
-    
+
+        eec.clock(est)
         return (tvdb_id, season, episodes)
     
     def _get_ep_obj(self, tvdb_id, season, episodes):
@@ -710,13 +718,14 @@ class PostProcessor(object):
         """
         Post-process a given file
         """
+        est = eec.set(self.process, self.file_name)
 
-
-                
         if self._islink(self.file_path):
+            eec.clock(est, 2)
             return 2 # already parsed path
 
         if not os.access(self.file_path, os.W_OK):
+            eec.clock(est, 2)
             return 2 # no write access, downloader-ignore?
 
         self._log(u"Processing "+self.file_path+" ("+str(self.nzb_name)+")")
@@ -736,6 +745,7 @@ class PostProcessor(object):
 
         # if we don't have it then give up
         if not tvdb_id or season == None or not episodes:
+            eec.clock(est, False)
             return False
 
         # retrieve/create the corresponding TVEpisode objects
@@ -762,11 +772,13 @@ class PostProcessor(object):
             # if there's an existing file that we don't want to replace stop here
             if existing_file_status in (PostProcessor.EXISTS_LARGER, PostProcessor.EXISTS_SAME):
                 self._log(u"File exists and we are not going to replace it because it's not smaller, quitting post-processing", logger.DEBUG)
+                eec.clock(est, False)
                 return False
             elif existing_file_status == PostProcessor.EXISTS_SMALLER:
                 self._log(u"File exists and is smaller than the new file so I'm going to replace it", logger.DEBUG)
             elif existing_file_status != PostProcessor.DOESNT_EXIST:
                 self._log(u"Unknown existing file status. This should never happen, please log this as a bug.", logger.ERROR)
+                eec.clock(est, False)
                 return False
 
         # if the file is priority then we're going to replace it even if it exists
@@ -890,4 +902,5 @@ class PostProcessor(object):
 
         self._run_extra_scripts(ep_obj)
 
+        eec.clock(est, True)
         return True
