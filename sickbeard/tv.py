@@ -1313,20 +1313,24 @@ class TVEpisode(object):
 
     def createNFO(self, force=False):
 
+        est = eec.set(self.createNFO, str(self.show.name) + " - " + str(self.season) + "x" + str(self.episode))
         result = False
 
         for cur_provider in sickbeard.metadata_provider_dict.values():
             result = cur_provider.create_episode_metadata(self) or result
 
+        eec.clock(est)
         return result
 
     def createThumbnail(self, force=False):
 
+        est = eec.set(self.createThumbnail, str(self.show.name) + " - " + str(self.season) + "x" + str(self.episode))
         result = False
 
         for cur_provider in sickbeard.metadata_provider_dict.values():
             result = cur_provider.create_episode_thumb(self) or result
 
+        eec.clock(est)
         return result
 
     def deleteEpisode(self):
