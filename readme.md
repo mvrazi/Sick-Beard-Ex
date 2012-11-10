@@ -19,7 +19,7 @@ Sick Beard is a PVR for newsgroup users (with limited torrent support). It watch
 
 **fuzeman/Sick-Beard-Ex *only* features:**
 
-* Symbolic Linking (allows torrent seeding) *(Enable with "Config" -> "Post Processing" -> "Keep Original Files")*
+* Symbolic Linking (for torrent clients) *(Enable with "Config" -> "Post Processing" -> "Keep Original Files")*
 * HTTP Request source address option *("Config" -> "General" -> "Source Address")*
 * Method time tracing *("Logs & Errors" -> "Method Times")*
 
