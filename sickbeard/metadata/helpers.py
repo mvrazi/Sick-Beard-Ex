@@ -86,6 +86,7 @@ def getShowImage(url, imgNum=None):
     image_data = None
 
     if url == None:
+        eec.clock(est, False)
         return None
 
     # if they provided a fanart number try to use it instead
@@ -100,9 +101,10 @@ def getShowImage(url, imgNum=None):
 
     if image_data is None:
         logger.log(u"There was an error trying to retrieve the image, aborting", logger.ERROR)
+        eec.clock(est, False)
         return None
 
-    eec.clock(est)
+    eec.clock(est, True)
     return image_data
 
 

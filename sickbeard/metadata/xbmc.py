@@ -24,6 +24,7 @@ import generic
 
 from sickbeard.common import XML_NSMAP
 from sickbeard import logger, exceptions, helpers
+from sickbeard.elapsedErrorChecker import elapsedErrorChecker as eec, ElapsedMethodDecorator
 from sickbeard.exceptions import ex
 
 from lib.tvdb_api import tvdb_api, tvdb_exceptions
@@ -166,7 +167,8 @@ class XBMCMetadata(generic.GenericMetadata):
         data = etree.ElementTree(tv_node)
 
         return data
-    
+
+    @ElapsedMethodDecorator(1000, 2500)
     def _ep_data(self, ep_obj):
         """
         Creates an elementTree XML structure for an XBMC-style episode.nfo and
@@ -175,6 +177,7 @@ class XBMCMetadata(generic.GenericMetadata):
         show_obj: a TVEpisode instance to create the NFO for
         """
 
+        est = eec.set(self._ep_data, str(ep_obj.show.name) + " - " + str(ep_obj.season) + "x" + str(ep_obj.episode))
         eps_to_write = [ep_obj] + ep_obj.relatedEps
 
         tvdb_lang = ep_obj.show.lang
@@ -192,6 +195,7 @@ class XBMCMetadata(generic.GenericMetadata):
             raise exceptions.ShowNotFoundException(e.message)
         except tvdb_exceptions.tvdb_error, e:
             logger.log(u"Unable to connect to TVDB while creating meta files - skipping - "+ex(e), logger.ERROR)
+            eec.clock(est, False)
             return
 
         if len(eps_to_write) > 1:
@@ -210,6 +214,7 @@ class XBMCMetadata(generic.GenericMetadata):
                 myEp = myShow[curEpToWrite.season][curEpToWrite.episode]
             except (tvdb_exceptions.tvdb_episodenotfound, tvdb_exceptions.tvdb_seasonnotfound):
                 logger.log(u"Unable to find episode " + str(curEpToWrite.season) + "x" + str(curEpToWrite.episode) + " on tvdb... has it been removed? Should I delete from db?")
+                eec.clock(est, False)
                 return None
 
             if not myEp["firstaired"]:
@@ -217,6 +222,7 @@ class XBMCMetadata(generic.GenericMetadata):
 
             if not myEp["episodename"]:
                 logger.log(u"Not generating nfo because the ep has no title", logger.DEBUG)
+                eec.clock(est, False)
                 return None
 
             logger.log(u"Creating metadata for episode "+str(ep_obj.season)+"x"+str(ep_obj.episode), logger.DEBUG)
@@ -312,6 +318,7 @@ class XBMCMetadata(generic.GenericMetadata):
 
         data = etree.ElementTree( rootNode )
 
+        eec.clock(est, True)
         return data
 
 # present a standard "interface" from the module
