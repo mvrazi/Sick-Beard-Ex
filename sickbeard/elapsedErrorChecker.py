@@ -31,6 +31,8 @@ class ElapsedErrorChecker():
     def _buildName(x):
         if inspect.ismethod(x):
             return ElapsedErrorChecker._buildName(x.im_self) + '.' + x.__name__
+        elif inspect.isfunction(x):
+            return x.__name__
         elif inspect.isclass(x.__class__):
             return x.__class__.__name__
 

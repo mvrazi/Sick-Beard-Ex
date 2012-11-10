@@ -221,7 +221,7 @@ class GenericMetadata():
             return self.save_season_thumbs(show_obj)
         return False
 
-    @ElapsedMethodDecorator(2500, 5000) # 2.5s Warning, 5s Error TODO: Review these times
+    @ElapsedMethodDecorator(500, 1000) # 0.5s Warning, 1s Error TODO: Review these times
     def _get_episode_thumb_url(self, ep_obj):
         """
         Returns the URL to use for downloading an episode's thumbnail. Uses

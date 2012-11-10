@@ -29,6 +29,8 @@ from lib.tvdb_api import tvdb_api, tvdb_exceptions
 
 import xml.etree.cElementTree as etree
 
+from sickbeard.elapsedErrorChecker import elapsedErrorChecker as eec, ElapsedMethodDecorator
+
 def getTVDBIDFromNFO(dir):
 
     if not ek.ek(os.path.isdir, dir):
@@ -77,8 +79,10 @@ def getTVDBIDFromNFO(dir):
 
     return tvdb_id
 
+@ElapsedMethodDecorator(2500, 5000) # 2.5s Warning, 5s Error TODO: Review these times
 def getShowImage(url, imgNum=None):
 
+    est = eec.set(getShowImage, str(url))
     image_data = None
 
     if url == None:
@@ -98,6 +102,7 @@ def getShowImage(url, imgNum=None):
         logger.log(u"There was an error trying to retrieve the image, aborting", logger.ERROR)
         return None
 
+    eec.clock(est)
     return image_data
 
 
