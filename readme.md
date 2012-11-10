@@ -5,7 +5,7 @@ Sick Beard
 
 Sick Beard is a PVR for newsgroup users (with limited torrent support). It watches for new episodes of your favorite shows and when they are posted it downloads them, sorts and renames them, and optionally generates metadata for them. It currently supports NZBs.org, NZBMatrix, Bin-Req, NZBs'R'Us, EZTV.it, and any Newznab installation and retrieves show information from theTVDB.com and TVRage.com.
 
-Features include:
+**Features include:**
 
 * automatically retrieves new episode torrent or nzb files
 * can scan your existing library and then download any old seasons or episodes you're missing
@@ -17,8 +17,14 @@ Features include:
 * can notify XBMC, Growl, or Twitter when new episodes are downloaded
 * specials and double episode support
 
+**fuzeman/Sick-Beard-Ex *only* features:**
 
-Sick Beard makes use of the following projects:
+* Symbolic Linking (allows torrent seeding) *(Enable with "Config" -> "Post Processing" -> "Keep Original Files")*
+* HTTP Request source address option *("Config" -> "General" -> "Source Address")*
+* Method time tracing *("Logs & Errors" -> "Method Times")*
+
+
+**Sick Beard makes use of the following projects:**
 
 * [cherrypy][cherrypy]
 * [Cheetah][cheetah]
