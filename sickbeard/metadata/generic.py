@@ -32,6 +32,8 @@ from sickbeard.exceptions import ex
 
 from lib.tvdb_api import tvdb_api, tvdb_exceptions
 
+from sickbeard.elapsedErrorChecker import elapsedErrorChecker as eec, ElapsedMethodDecorator
+
 
 class GenericMetadata():
     """
@@ -218,7 +220,8 @@ class GenericMetadata():
             logger.log("Metadata provider "+self.name+" creating season thumbnails for "+show_obj.name, logger.DEBUG)
             return self.save_season_thumbs(show_obj)
         return False
-    
+
+    @ElapsedMethodDecorator(2500, 5000) # 2.5s Warning, 5s Error TODO: Review these times
     def _get_episode_thumb_url(self, ep_obj):
         """
         Returns the URL to use for downloading an episode's thumbnail. Uses
@@ -226,6 +229,7 @@ class GenericMetadata():
         
         ep_obj: a TVEpisode object for which to grab the thumb URL
         """
+        est = eec.set(self._get_episode_thumb_url, str(ep_obj.show.name) + " - " + str(ep_obj.season) + "x" + str(ep_obj.episode))
         all_eps = [ep_obj] + ep_obj.relatedEps
 
         tvdb_lang = ep_obj.show.lang
@@ -245,6 +249,7 @@ class GenericMetadata():
             raise exceptions.ShowNotFoundException(e.message)
         except tvdb_exceptions.tvdb_error, e:
             logger.log(u"Unable to connect to TVDB while creating meta files - skipping - "+ex(e), logger.ERROR)
+            eec.clock(est, False)
             return None
     
         # try all included episodes in case some have thumbs and others don't
@@ -258,8 +263,10 @@ class GenericMetadata():
             thumb_url = myEp["filename"]
             
             if thumb_url:
+                eec.clock(est, True)
                 return thumb_url
 
+        eec.clock(est, False)
         return None
     
     def write_show_file(self, show_obj):
