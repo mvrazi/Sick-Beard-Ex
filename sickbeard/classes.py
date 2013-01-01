@@ -15,8 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Sick Beard.  If not, see <http://www.gnu.org/licenses/>.
-
-
+import httplib
+import socket
 
 import sickbeard
 
@@ -24,6 +24,15 @@ import urllib
 import datetime
 
 from common import USER_AGENT
+
+def httpConnectHandler(self):
+    """Connect to the host and port specified in __init__."""
+    self.sock = socket.create_connection((self.host,self.port),
+        self.timeout, (sickbeard.SOURCE_ADDRESS, 0))
+
+    if self._tunnel_host:
+        self._tunnel()
+httplib.HTTPConnection.connect = httpConnectHandler
 
 class SickBeardURLopener(urllib.FancyURLopener):
     version = USER_AGENT

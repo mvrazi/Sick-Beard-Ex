@@ -93,6 +93,8 @@ started = False
 
 LOG_DIR = None
 
+SOURCE_ADDRESS = ""
+
 WEB_PORT = None
 WEB_LOG = None
 WEB_ROOT = None
@@ -304,7 +306,7 @@ def initialize(consoleLogging=True):
 
     with INIT_LOCK:
 
-        global LOG_DIR, WEB_PORT, WEB_LOG, WEB_ROOT, WEB_USERNAME, WEB_PASSWORD, WEB_HOST, WEB_IPV6, USE_API, API_KEY, ENABLE_HTTPS, HTTPS_CERT, HTTPS_KEY, \
+        global LOG_DIR, SOURCE_ADDRESS, WEB_PORT, WEB_LOG, WEB_ROOT, WEB_USERNAME, WEB_PASSWORD, WEB_HOST, WEB_IPV6, USE_API, API_KEY, ENABLE_HTTPS, HTTPS_CERT, HTTPS_KEY, \
                 USE_NZBS, USE_TORRENTS, NZB_METHOD, NZB_DIR, DOWNLOAD_PROPERS, \
                 SAB_USERNAME, SAB_PASSWORD, SAB_APIKEY, SAB_CATEGORY, SAB_HOST, \
                 NZBGET_PASSWORD, NZBGET_CATEGORY, NZBGET_HOST, currentSearchScheduler, backlogSearchScheduler, \
@@ -360,6 +362,8 @@ def initialize(consoleLogging=True):
         LOG_DIR = check_setting_str(CFG, 'General', 'log_dir', 'Logs')
         if not helpers.makeDir(LOG_DIR):
             logger.log(u"!!! No log folder, logging to screen only!", logger.ERROR)
+
+        SOURCE_ADDRESS = check_setting_str(CFG, 'General', 'source_address', '0.0.0.0')
 
         try:
             WEB_PORT = check_setting_int(CFG, 'General', 'web_port', 8081)
@@ -931,6 +935,7 @@ def save_config():
     new_config['General']['web_host'] = WEB_HOST
     new_config['General']['web_ipv6'] = int(WEB_IPV6)
     new_config['General']['web_log'] = int(WEB_LOG)
+    new_config['General']['source_address'] = SOURCE_ADDRESS
     new_config['General']['web_root'] = WEB_ROOT
     new_config['General']['web_username'] = WEB_USERNAME
     new_config['General']['web_password'] = WEB_PASSWORD

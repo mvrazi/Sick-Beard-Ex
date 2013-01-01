@@ -34,6 +34,7 @@ from lib.tvdb_api import tvdb_api, tvdb_exceptions
 
 from sickbeard import db
 from sickbeard import helpers, exceptions, logger
+from sickbeard.elapsedErrorChecker import ElapsedMethodDecorator
 from sickbeard.exceptions import ex
 from sickbeard import tvrage
 from sickbeard import image_cache
@@ -1295,6 +1296,7 @@ class TVEpisode(object):
         toReturn += "status: " + str(self.status) + "\n"
         return toReturn
 
+    @ElapsedMethodDecorator(5 * 1000, 10 * 1000) # 5s Warning, 10s Error TODO: Review these times
     def createMetaFiles(self, force=False):
 
         est = eec.set(self.createMetaFiles, str(self.show.name) + " - " + str(self.season) + "x" + str(self.episode))
@@ -1311,22 +1313,28 @@ class TVEpisode(object):
 
         eec.clock(est)
 
+    @ElapsedMethodDecorator(3500, 7000) # 2.5s Warning, 5s Error TODO: Review these times
     def createNFO(self, force=False):
 
+        est = eec.set(self.createNFO, str(self.show.name) + " - " + str(self.season) + "x" + str(self.episode))
         result = False
 
         for cur_provider in sickbeard.metadata_provider_dict.values():
             result = cur_provider.create_episode_metadata(self) or result
 
+        eec.clock(est)
         return result
 
+    @ElapsedMethodDecorator(2500, 5 * 1000) # 2.5s Warning, 5s Error TODO: Review these times
     def createThumbnail(self, force=False):
 
+        est = eec.set(self.createThumbnail, str(self.show.name) + " - " + str(self.season) + "x" + str(self.episode))
         result = False
 
         for cur_provider in sickbeard.metadata_provider_dict.values():
             result = cur_provider.create_episode_thumb(self) or result
 
+        eec.clock(est)
         return result
 
     def deleteEpisode(self):
@@ -1346,6 +1354,7 @@ class TVEpisode(object):
 
         raise exceptions.EpisodeDeletedException()
 
+    @ElapsedMethodDecorator(1 * 1000, 2 * 1000) # 1s Warning, 2s Error TODO: Review these times
     def saveToDB(self, forceSave=False):
         """
         Saves this episode to the database if any of its data has been changed since the last save.

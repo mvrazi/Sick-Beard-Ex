@@ -1749,6 +1749,18 @@ table .span24 {
   margin-left: 0;
 }
 
+.table tbody tr.success td {
+  background-color: #dff0d8;
+}
+
+.table tbody tr.error td {
+  background-color: #f2dede;
+}
+
+.table tbody tr.warning td {
+  background-color: #fcf8e3;
+}
+
 [class^="icon-"],
 [class*=" icon-"] {
   display: inline-block;
