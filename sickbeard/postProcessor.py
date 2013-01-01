@@ -310,7 +310,7 @@ class PostProcessor(object):
             if file_attrs == -1: return False
             return (file_attrs & win32con.FILE_ATTRIBUTE_REPARSE_POINT) == win32con.FILE_ATTRIBUTE_REPARSE_POINT
         else:
-            return os.path.islink(path)
+            return ek.ek(os.path.islink, path)
 
     def _history_lookup(self):
         """
