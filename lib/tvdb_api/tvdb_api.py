@@ -561,11 +561,11 @@ class Tvdb:
         try:
             # TVDB doesn't sanitize \r (CR) from user input in some fields,
             # remove it to avoid errors. Change from SickBeard, from will14m
-            return ElementTree.fromstring(src.rstrip("\r"))
+            return ElementTree.fromstring(src.replace("\x19", "").rstrip("\r"))
         except SyntaxError:
             src = self._loadUrl(url, recache=True, language=language)
             try:
-                return ElementTree.fromstring(src.rstrip("\r"))
+                return ElementTree.fromstring(src.replace("\x19", "").rstrip("\r"))
             except SyntaxError, exceptionmsg:
                 errormsg = "There was an error with the XML retrieved from thetvdb.com:\n%s" % (
                     exceptionmsg
