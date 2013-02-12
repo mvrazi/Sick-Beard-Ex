@@ -23,7 +23,7 @@ import sickbeard
 import urllib
 import datetime
 
-from common import USER_AGENT
+from common import USER_AGENT, Quality
 
 def httpConnectHandler(self):
     """Connect to the host and port specified in __init__."""
@@ -93,7 +93,7 @@ class SearchResult:
         self.episodes = episodes
 
         # quality of the release
-        self.quality = -1
+        self.quality = Quality.UNKNOWN
 
         # release name
         self.name = ""
@@ -158,7 +158,7 @@ class Proper:
         self.url = url
         self.date = date
         self.provider = None
-        self.quality = -1
+        self.quality = Quality.UNKNOWN
 
         self.tvdbid = -1
         self.season = -1
