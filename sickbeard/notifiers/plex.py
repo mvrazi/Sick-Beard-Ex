@@ -49,8 +49,6 @@ class PLEXNotifier:
         clients = list(clients)
         found = {}
 
-        logger.log('_get_clients host: %s' % host)
-
         try:
             client_request = urllib2.urlopen('http://%s:32400/clients' % host)
             client_result = etree.fromstring(client_request.read())
@@ -73,8 +71,6 @@ class PLEXNotifier:
 
         if len(clients) > 0:
             logger.log('unable to find some plex clients: %s' % ', '.join(clients), logger.WARNING)
-
-        logger.log('found hosts: %s' % ', '.join(found.keys()))
 
         return found
 
