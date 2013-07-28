@@ -15,6 +15,8 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Sick Beard.  If not, see <http://www.gnu.org/licenses/>.
+from datetime import datetime
+import json
 
 import urllib
 import urllib2
@@ -27,77 +29,162 @@ from sickbeard import common
 from sickbeard.exceptions import ex
 from sickbeard.encodingKludge import fixStupidEncodings
 
-# TODO: switch over to using ElementTree
-from xml.dom import minidom
+try:
+    import xml.etree.cElementTree as etree
+except ImportError:
+    import xml.etree.ElementTree as etree
 
 
 class PLEXNotifier:
+    client_update_time = 5 * 60  # 5 minutes
 
-    def _send_to_plex(self, command, host, username=None, password=None):
-        """Handles communication to Plex hosts via HTTP API
+    def __init__(self):
+        self.clients = {}
+        self.clients_updated = None
 
-        Args:
-            command: Dictionary of field/data pairs, encoded via urllib and passed to the legacy xbmcCmds HTTP API
-            host: Plex host:port
-            username: Plex API username
-            password: Plex API password
+    def _split_client_list(self, s):
+        return [x.strip().lower() for x in s.split(',')]
 
-        Returns:
-            Returns 'OK' for successful commands or False if there was an error
+    def _get_clients(self, host, clients):
+        clients = list(clients)
+        found = {}
 
-        """
+        logger.log('_get_clients host: %s' % host)
 
-        # fill in omitted parameters
-        if not username:
-            username = sickbeard.PLEX_USERNAME
-        if not password:
-            password = sickbeard.PLEX_PASSWORD
-
-        if not host:
-            logger.log(u"No Plex host specified, check your settings", logger.DEBUG)
-            return False
-
-        for key in command:
-            if type(command[key]) == unicode:
-                command[key] = command[key].encode('utf-8')
-
-        enc_command = urllib.urlencode(command)
-        logger.log(u"Plex encoded API command: " + enc_command, logger.DEBUG)
-
-        url = 'http://%s/xbmcCmds/xbmcHttp/?%s' % (host, enc_command)
         try:
-            req = urllib2.Request(url)
-            # if we have a password, use authentication
-            if password:
-                base64string = base64.encodestring('%s:%s' % (username, password))[:-1]
-                authheader = "Basic %s" % base64string
-                req.add_header("Authorization", authheader)
-                logger.log(u"Contacting Plex (with auth header) via url: " + url, logger.DEBUG)
-            else:
-                logger.log(u"Contacting Plex via url: " + url, logger.DEBUG)
+            client_request = urllib2.urlopen('http://%s:32400/clients' % host)
+            client_result = etree.fromstring(client_request.read())
+        except urllib2.HTTPError, err:
+            logger.log(str(err), logger.ERROR)
+            return None
 
-            response = urllib2.urlopen(req)
+        for server in client_result.findall('Server'):
+            if server.get('name').lower() in clients:
+                clients.remove(server.get('name').lower())
+                protocol = server.get('protocol', 'xbmchttp')
 
-            result = response.read().decode(sickbeard.SYS_ENCODING)
-            response.close()
+                if protocol in ['xbmcjson', 'xbmchttp']:
+                    found[server.get('name')] = {
+                        'name': server.get('name'),
+                        'address': server.get('address'),
+                        'port': server.get('port'),
+                        'protocol': protocol
+                    }
 
-            logger.log(u"Plex HTTP response: " + result.replace('\n', ''), logger.DEBUG)
-            # could return result response = re.compile('<html><li>(.+\w)</html>').findall(result)
-            return 'OK'
+        if len(clients) > 0:
+            logger.log('unable to find some plex clients: %s' % ', '.join(clients), logger.WARNING)
 
-        except (urllib2.URLError, IOError), e:
-            logger.log(u"Warning: Couldn't contact Plex at " + fixStupidEncodings(url) + " " + ex(e), logger.WARNING)
+        logger.log('found hosts: %s' % ', '.join(found.keys()))
+
+        return found
+
+    def _update_clients(self, host, client_names, force=False):
+        if host is None:
+            logger.log('Plex media server host required', logger.WARNING)
+            return
+
+        since_update = ((datetime.now() - self.clients_updated).total_seconds())\
+            if self.clients_updated is not None else None
+
+        if force or self.clients_updated is None or since_update > self.client_update_time:
+            self.clients = self._get_clients(host, self._split_client_list(client_names))
+            self.clients_updated = datetime.now()
+
+    def _send_http(self, command, client):
+        url = 'http://%s:%s/xbmcCmds/xbmcHttp/?%s' % (
+            client['address'],
+            client['port'],
+            urllib.urlencode(command)
+        )
+
+        headers = {}
+
+        try:
+            r = urllib2.Request(url, headers=headers)
+            urllib2.urlopen(r)
+        except Exception, err:
+            logger.log("Couldn't sent command to Plex: %s" % err, logger.ERROR)
             return False
 
-    def _notify_pmc(self, message, title="Sick Beard", host=None, username=None, password=None, force=False):
+        return True
+
+    def _notify_http(self, message='', title="Sick Beard", clients=None):
+        total = 0
+        successful = 0
+
+        data = {
+            'command': 'ExecBuiltIn',
+            'parameter': 'Notification(%s, %s)' % (title, message)
+        }
+
+        for name, client in clients.items():
+            if client['protocol'] == 'xbmchttp':
+                total += 1
+                if self._send_http(data, client):
+                    successful += 1
+
+        return successful == total
+
+    def _send_json(self, method, params, client):
+        url = 'http://%s:%s/jsonrpc' % (
+            client['address'],
+            client['port']
+        )
+
+        headers = {
+            'Content-Type': 'application/json'
+        }
+
+        request = {
+            'id':1,
+            'jsonrpc': '2.0',
+            'method': method,
+            'params': params
+        }
+
+        try:
+            r = urllib2.Request(url, json.dumps(request), headers)
+            urllib2.urlopen(r)
+        except Exception, err:
+            logger.log("Couldn't sent command to Plex: %s" % err, logger.ERROR)
+            return False
+
+        return True
+
+    def _notify_json(self, message='', title="Sick Beard", clients=None):
+        total = 0
+        successful = 0
+
+        params = {
+            'title': title,
+            'message': message
+        }
+
+        for name, client in clients.items():
+            if client['protocol'] == 'xbmcjson':
+                total += 1
+                if self._send_json('GUI.ShowNotification', params, client):
+                    successful += 1
+
+        return successful == total
+
+    def _notify(self, message, title, clients=None, force=False):
+        if clients is None:
+            clients = self.clients
+
+        http_result = self._notify_http(message, title, clients)
+        json_result = self._notify_json(message, title, clients)
+
+        return http_result and json_result
+
+    def _notify_pmc(self, message, title="Sick Beard", host=None, client_names=None, force=False):
         """Internal wrapper for the notify_snatch and notify_download functions
 
         Args:
             message: Message body of the notice to send
             title: Title of the notice to send
-            host: Plex Media Client(s) host:port
-            username: Plex username
-            password: Plex password
+            host: Plex Media Server
+            client_name: Plex client names
             force: Used for the Test method to override config saftey checks
 
         Returns:
@@ -106,29 +193,19 @@ class PLEXNotifier:
 
         """
 
-        # fill in omitted parameters
-        if not host:
-            host = sickbeard.PLEX_HOST
-        if not username:
-            username = sickbeard.PLEX_USERNAME
-        if not password:
-            password = sickbeard.PLEX_PASSWORD
+        if host is None:
+            host = sickbeard.PLEX_SERVER_HOST
+
+        if client_names is None:
+            client_names = sickbeard.PLEX_CLIENT_NAMES
 
         # suppress notifications if the notifier is disabled but the notify options are checked
         if not sickbeard.USE_PLEX and not force:
             logger.log("Notification for Plex not enabled, skipping this notification", logger.DEBUG)
             return False
 
-        result = ''
-        for curHost in [x.strip() for x in host.split(",")]:
-            logger.log(u"Sending Plex notification to '" + curHost + "' - " + message, logger.MESSAGE)
-
-            command = {'command': 'ExecBuiltIn', 'parameter': 'Notification(' + title.encode("utf-8") + ',' + message.encode("utf-8") + ')'}
-            notifyResult = self._send_to_plex(command, curHost, username, password)
-            if notifyResult:
-                result += curHost + ':' + str(notifyResult)
-
-        return result
+        self._update_clients(host, client_names, force=force)
+        self._notify(message, title)
 
 ##############################################################################
 # Public functions
@@ -142,8 +219,13 @@ class PLEXNotifier:
         if sickbeard.PLEX_NOTIFY_ONDOWNLOAD:
             self._notify_pmc(ep_name, common.notifyStrings[common.NOTIFY_DOWNLOAD])
 
-    def test_notify(self, host, username, password):
-        return self._notify_pmc("Testing Plex notifications from Sick Beard", "Test Notification", host, username, password, force=True)
+    def test_notify(self, host, client_name):
+        clients = self._get_clients(host, [client_name.lower()])
+
+        if clients is None or len(clients) != 1:
+            return False
+
+        return self._notify("Testing Plex notifications from Sick Beard", "Test Notification", clients, force=True)
 
     def update_library(self):
         """Handles updating the Plex Media Server host via HTTP API
@@ -162,21 +244,21 @@ class PLEXNotifier:
 
             logger.log(u"Updating library for the Plex Media Server host: " + sickbeard.PLEX_SERVER_HOST, logger.MESSAGE)
 
-            url = "http://%s/library/sections" % sickbeard.PLEX_SERVER_HOST
+            url = "http://%s:32400/library/sections" % sickbeard.PLEX_SERVER_HOST
             try:
-                xml_sections = minidom.parse(urllib.urlopen(url))
+                xml_sections = etree.fromstring(urllib.urlopen(url).read())
             except IOError, e:
                 logger.log(u"Error while trying to contact Plex Media Server: " + ex(e), logger.ERROR)
                 return False
 
-            sections = xml_sections.getElementsByTagName('Directory')
+            sections = xml_sections.findall('Directory')
             if not sections:
                 logger.log(u"Plex Media Server not running on: " + sickbeard.PLEX_SERVER_HOST, logger.MESSAGE)
                 return False
 
             for s in sections:
-                if s.getAttribute('type') == "show":
-                    url = "http://%s/library/sections/%s/refresh" % (sickbeard.PLEX_SERVER_HOST, s.getAttribute('key'))
+                if s.get('type') == "show":
+                    url = "http://%s:32400/library/sections/%s/refresh" % (sickbeard.PLEX_SERVER_HOST, s.get('key'))
                     try:
                         urllib.urlopen(url)
                     except Exception, e:

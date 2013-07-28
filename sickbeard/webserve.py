@@ -1155,7 +1155,7 @@ class ConfigNotifications:
     def saveNotifications(self, use_xbmc=None, xbmc_notify_onsnatch=None, xbmc_notify_ondownload=None, xbmc_update_onlyfirst=None,
                           xbmc_update_library=None, xbmc_update_full=None, xbmc_host=None, xbmc_username=None, xbmc_password=None,
                           use_plex=None, plex_notify_onsnatch=None, plex_notify_ondownload=None, plex_update_library=None,
-                          plex_server_host=None, plex_host=None, plex_username=None, plex_password=None,
+                          plex_server_host=None, plex_client_names=None,
                           use_growl=None, growl_notify_onsnatch=None, growl_notify_ondownload=None, growl_host=None, growl_password=None,
                           use_prowl=None, prowl_notify_onsnatch=None, prowl_notify_ondownload=None, prowl_api=None, prowl_priority=0,
                           use_twitter=None, twitter_notify_onsnatch=None, twitter_notify_ondownload=None,
@@ -1376,10 +1376,8 @@ class ConfigNotifications:
         sickbeard.PLEX_NOTIFY_ONSNATCH = plex_notify_onsnatch
         sickbeard.PLEX_NOTIFY_ONDOWNLOAD = plex_notify_ondownload
         sickbeard.PLEX_UPDATE_LIBRARY = plex_update_library
-        sickbeard.PLEX_HOST = plex_host
+        sickbeard.PLEX_CLIENT_NAMES = plex_client_names
         sickbeard.PLEX_SERVER_HOST = plex_server_host
-        sickbeard.PLEX_USERNAME = plex_username
-        sickbeard.PLEX_PASSWORD = plex_password
 
         sickbeard.USE_GROWL = use_growl
         sickbeard.GROWL_NOTIFY_ONSNATCH = growl_notify_onsnatch
@@ -2106,16 +2104,20 @@ class Home:
         return finalResult
 
     @cherrypy.expose
-    def testPLEX(self, host=None, username=None, password=None):
+    def testPLEX(self, host=None, client_names=None):
         cherrypy.response.headers['Cache-Control'] = "max-age=0,no-cache,no-store"
 
+        if host is not None:
+            host = urllib.unquote_plus(host)
+
         finalResult = ''
-        for curHost in [x.strip() for x in host.split(",")]:
-            curResult = notifiers.plex_notifier.test_notify(urllib.unquote_plus(curHost), username, password)
-            if len(curResult.split(":")) > 2 and 'OK' in curResult.split(":")[2]:
-                finalResult += "Test Plex notice sent successfully to " + urllib.unquote_plus(curHost)
+
+        for client_name in [x.strip() for x in client_names.split(",")]:
+            if notifiers.plex_notifier.test_notify(host, client_name):
+                finalResult += "Test Plex notice sent successfully to " + urllib.unquote_plus(client_name)
             else:
-                finalResult += "Test Plex notice failed to " + urllib.unquote_plus(curHost)
+                finalResult += "Test Plex notice failed to " + urllib.unquote_plus(client_name)
+
             finalResult += "<br />\n"
 
         return finalResult

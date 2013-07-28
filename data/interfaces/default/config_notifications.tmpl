@@ -155,46 +155,26 @@
                             </div>
                             <div class="field-pair">
                                 <label class="nocheck clearfix">
-                                    <span class="component-title">Plex Media Server IP:Port</span>
+                                    <span class="component-title">Plex Media Server</span>
                                     <input type="text" name="plex_server_host" id="plex_server_host" value="$sickbeard.PLEX_SERVER_HOST" size="35" />
                                 </label>
                                 <label class="nocheck clearfix">
                                     <span class="component-title">&nbsp;</span>
-                                    <span class="component-desc">Host running Plex Media Server (eg. 192.168.1.100:32400)</span>
+                                    <span class="component-desc">Host running Plex Media Server (eg. 192.168.1.100)</span>
                                 </label>
                             </div>
                             <div class="field-pair">
                                 <label class="nocheck clearfix">
-                                    <span class="component-title">Plex Client IP:Port</span>
-                                    <input type="text" name="plex_host" id="plex_host" value="$sickbeard.PLEX_HOST" size="35" />
+                                    <span class="component-title">Plex Client Names</span>
+                                    <input type="text" name="plex_client_names" id="plex_client_names" value="$sickbeard.PLEX_CLIENT_NAMES" size="35" />
                                 </label>
                                 <label class="nocheck clearfix">
                                     <span class="component-title">&nbsp;</span>
-                                    <span class="component-desc">Host running Plex Client (eg. 192.168.1.100:3000)</span>
+                                    <span class="component-desc">Computer name of running Plex Client</span>
                                 </label>
                                 <label class="nocheck clearfix">
                                     <span class="component-title">&nbsp;</span>
-                                    <span class="component-desc">(multiple host strings must be separated by commas)</span>
-                                </label>
-                            </div>
-                            <div class="field-pair">
-                                <label class="nocheck clearfix">
-                                    <span class="component-title">Plex Client Username</span>
-                                    <input type="text" name="plex_username" id="plex_username" value="$sickbeard.PLEX_USERNAME" size="35" />
-                                </label>
-                                <label class="nocheck clearfix">
-                                    <span class="component-title">&nbsp;</span>
-                                    <span class="component-desc">Username of your Plex client API (blank for none)</span>
-                                </label>
-                            </div>
-                            <div class="field-pair">
-                                <label class="nocheck clearfix">
-                                    <span class="component-title">Plex Client Password</span>
-                                    <input type="password" name="plex_password" id="plex_password" value="$sickbeard.PLEX_PASSWORD" size="35" />
-                                </label>
-                                <label class="nocheck clearfix">
-                                    <span class="component-title">&nbsp;</span>
-                                    <span class="component-desc">Password of your Plex client API (blank for none)</span>
+                                    <span class="component-desc">(multiple names must be separated by commas)</span>
                                 </label>
                             </div>
                             <div class="testNotification" id="testPLEX-result">Click below to test.</div>

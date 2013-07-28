@@ -32,10 +32,9 @@ $(document).ready(function () {
 
     $('#testPLEX').click(function () {
         $('#testPLEX-result').html(loading);
-        var plex_host = $("#plex_host").val();
-        var plex_username = $("#plex_username").val();
-        var plex_password = $("#plex_password").val();
-        $.get(sbRoot + "/home/testPLEX", {'host': plex_host, 'username': plex_username, 'password': plex_password},
+        var plex_server_host = $("#plex_server_host").val();
+        var plex_client_names = $("#plex_client_names").val();
+        $.get(sbRoot + "/home/testPLEX", {'host': plex_server_host, 'client_names': plex_client_names},
             function (data) { $('#testPLEX-result').html(data); });
     });
 

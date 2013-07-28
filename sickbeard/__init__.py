@@ -226,9 +226,7 @@ PLEX_NOTIFY_ONSNATCH = False
 PLEX_NOTIFY_ONDOWNLOAD = False
 PLEX_UPDATE_LIBRARY = False
 PLEX_SERVER_HOST = None
-PLEX_HOST = None
-PLEX_USERNAME = None
-PLEX_PASSWORD = None
+PLEX_CLIENT_NAMES = None
 
 USE_GROWL = False
 GROWL_NOTIFY_ONSNATCH = False
@@ -333,7 +331,7 @@ def initialize(consoleLogging=True):
                 XBMC_UPDATE_LIBRARY, XBMC_HOST, XBMC_USERNAME, XBMC_PASSWORD, \
                 USE_TRAKT, TRAKT_USERNAME, TRAKT_PASSWORD, TRAKT_API, \
                 USE_PLEX, PLEX_NOTIFY_ONSNATCH, PLEX_NOTIFY_ONDOWNLOAD, PLEX_UPDATE_LIBRARY, \
-                PLEX_SERVER_HOST, PLEX_HOST, PLEX_USERNAME, PLEX_PASSWORD, \
+                PLEX_SERVER_HOST, PLEX_CLIENT_NAMES, \
                 showUpdateScheduler, __INITIALIZED__, LAUNCH_BROWSER, showList, loadingShowList, \
                 NZBS, NZBS_UID, NZBS_HASH, EZRSS, TVTORRENTS, TVTORRENTS_DIGEST, TVTORRENTS_HASH, BTN, BTN_API_KEY, TORRENTLEECH, TORRENTLEECH_KEY, \
                 TORRENT_DIR, USENET_RETENTION, SOCKET_TIMEOUT, \
@@ -620,9 +618,7 @@ def initialize(consoleLogging=True):
         PLEX_NOTIFY_ONDOWNLOAD = bool(check_setting_int(CFG, 'Plex', 'plex_notify_ondownload', 0))
         PLEX_UPDATE_LIBRARY = bool(check_setting_int(CFG, 'Plex', 'plex_update_library', 0))
         PLEX_SERVER_HOST = check_setting_str(CFG, 'Plex', 'plex_server_host', '')
-        PLEX_HOST = check_setting_str(CFG, 'Plex', 'plex_host', '')
-        PLEX_USERNAME = check_setting_str(CFG, 'Plex', 'plex_username', '')
-        PLEX_PASSWORD = check_setting_str(CFG, 'Plex', 'plex_password', '')
+        PLEX_CLIENT_NAMES = check_setting_str(CFG, 'Plex', 'plex_client_names', '')
 
         CheckSection(CFG, 'Growl')
         USE_GROWL = bool(check_setting_int(CFG, 'Growl', 'use_growl', 0))
@@ -1114,9 +1110,7 @@ def save_config():
     new_config['Plex']['plex_notify_ondownload'] = int(PLEX_NOTIFY_ONDOWNLOAD)
     new_config['Plex']['plex_update_library'] = int(PLEX_UPDATE_LIBRARY)
     new_config['Plex']['plex_server_host'] = PLEX_SERVER_HOST
-    new_config['Plex']['plex_host'] = PLEX_HOST
-    new_config['Plex']['plex_username'] = PLEX_USERNAME
-    new_config['Plex']['plex_password'] = PLEX_PASSWORD
+    new_config['Plex']['plex_client_names'] = PLEX_CLIENT_NAMES
 
     new_config['Growl'] = {}
     new_config['Growl']['use_growl'] = int(USE_GROWL)
