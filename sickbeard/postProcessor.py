@@ -730,7 +730,7 @@ class PostProcessor(object):
             eec.clock(est, 2)
             return 2 # already parsed path
 
-        if not os.access(self.file_path, os.W_OK):
+        if not ek.ek(os.access, self.file_path, os.W_OK):
             eec.clock(est, 2)
             return 2 # no write access, downloader-ignore?
 
